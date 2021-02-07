@@ -26,6 +26,7 @@ GetOptions(
     'n' => \$usenotes,
     's' => \$uselongoptions,
     'v' => \$useverbose,
+    'F=s' => \$newflag,
     'h' => \$help,
 ) or die usage();
 
@@ -48,6 +49,10 @@ $useverbose = ( $useverbose ? '-v' : '' );
 
 if ($help) {
     usage();
+}
+
+if ($newflag) {
+    $newflag.=" ";
 }
 
 my $state; # 0 is request-line, 1-headers, 2-body
@@ -371,7 +376,7 @@ if($useverbose) {
 # This adds the -x option to prevent a curl request to actually go out to any
 # remote server
 my $lib="--libcurl - -x localhost:0 " if($uselibcurl);
-my $curlcmd = sprintf "curl ${useverbose}${usemethod}${httpver}${disabledheaders}${addedheaders}${usebody}${multipart}${requesttarget}${lib}${url}";
+my $curlcmd = sprintf "curl ${newflag}${useverbose}${usemethod}${httpver}${disabledheaders}${addedheaders}${usebody}${multipart}${requesttarget}${lib}${url}";
 
 if($uselibcurl) {
     # this actually runs curl which will fail to connect so ignore errors
