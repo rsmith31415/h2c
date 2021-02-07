@@ -27,6 +27,7 @@ GetOptions(
     's' => \$uselongoptions,
     'v' => \$useverbose,
     'F=s' => \$newflag,
+    'u=s' => \$url,
     'h' => \$help,
 ) or die usage();
 
@@ -315,7 +316,12 @@ if($do_multipart) {
 # go through the headers alphabetically just to make the order fixed
 foreach my $h (sort keys %header) {
     if(lc($h) eq "host") {
-        # We use Host: for the URL creation
+        if ($url) {
+            $addedheaders .= sprintf("$opt_header \"Host: %s\" ", $header{$h});
+        }
+        else {
+            # We use Host: for the URL creation
+        }
     }
     elsif((lc($h) eq "authorization") &&
           ($header{'authorization'} =~ /^Basic (.*)/)) {
@@ -361,7 +367,7 @@ if($path =~ /[ &?]/) {
     $url = sprintf "\"%s://%s%s\"", $usehttp ? "http" : "https", $header{'host'}, $path;
 }
 else {
-    $url = sprintf "%s://%s%s", $usehttp ? "http" : "https", $header{'host'}, $path;
+    $url = sprintf "%s://%s%s", $usehttp ? "http" : "https", $url ? $url : $header{'host'}, $path;
 }
 
 if($disabledheaders || $addedheaders) {
