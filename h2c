@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use MIME::Base64;
+use Getopt::Long qw(GetOptions);
 
 sub usage {
     print "h2c.pl [options] < file \n",
@@ -16,6 +17,18 @@ sub usage {
     exit;
 }
 
+GetOptions(
+    'a' => \$disableheadersnotseen,
+    'd' => \$usedocs,
+    'H' => \$usehttp,
+    'i' => \$usesamehttpversion,
+    'libcurl' => \$uselibcurl,
+    'n' => \$usenotes,
+    's' => \$uselongoptions,
+    'v' => \$useverbose,
+    'h' => \$help,
+) or die usage();
+
 sub manpage {
     my ($p, $n, $desc) = @_;
     if(!$n) {
@@ -24,54 +37,18 @@ sub manpage {
     return sprintf("%s;%s;$desc", $p, $n);
 }
 
-my $usesamehttpversion = 1;
-my $disableheadersnotseen = 1;
-my $shellcompatible = 1; # may not been windows command prompt compat
-my $uselongoptions = 1; # instead of short
-my $uselibcurl = 0; # --libcurl
-my $usehttp = 0;
+$disableheadersnotseen = ( $disableheadersnotseen ? 0 : 1 );
+$usedocs = ( $usedocs ? 1 : 0 );
+$usehttp = ( $usehttp ? 1 : 0 );
+$usesamehttpversion = ( $usesamehttpversion ? 0 : 1 );
+$uselibcurl = ( $uselibcurl ? 1 : 0 );
+$usenotes = ( $usenotes ? 1 : 0 );
+$uselongoptions = ( $uselongoptions ? 0 : 1 );
+$useverbose = ( $useverbose ? '-v' : '' );
 
-while($ARGV[0]) {
-    if(($ARGV[0] eq "-h") || ($ARGV[0] eq "--help")) {
-        usage();
-    }
-    elsif($ARGV[0] eq "-a") {
-        $disableheadersnotseen = 0;
-        shift @ARGV;
-    }
-    elsif($ARGV[0] eq "-d") {
-        $usedocs = 1;
-        shift @ARGV;
-    }
-    elsif($ARGV[0] eq "-H") {
-        $usehttp = 1;
-        shift @ARGV;
-    }
-    elsif($ARGV[0] eq "-i") {
-        $usesamehttpversion = 0;
-        shift @ARGV;
-    }
-    elsif($ARGV[0] eq "--libcurl") {
-        $uselibcurl = 1;
-        shift @ARGV;
-    }
-    elsif($ARGV[0] eq "-n") {
-        $usenotes = 1;
-        shift @ARGV;
-    }
-    elsif($ARGV[0] eq "-s") {
-        $uselongoptions = 0;
-        shift @ARGV;
-    }
-    elsif($ARGV[0] eq "-v") {
-        $useverbose = 1;
-        shift @ARGV;
-    }
-    else {
-        usage();
-    }
+if ($help) {
+    usage();
 }
-
 
 my $state; # 0 is request-line, 1-headers, 2-body
 my $line = 1;
